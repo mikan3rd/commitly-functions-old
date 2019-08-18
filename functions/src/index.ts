@@ -7,9 +7,8 @@ export const helloWorld = functions.region('asia-northeast1').https.onRequest((r
   response.send('Hello from Firebase!');
 });
 
-export const testFunction = functions.region('asia-northeast1').https.onCall((data, context: any) => {
-  const uid = context.auth.uid;
-  const name = context.auth.token.name || null;
-  const email = context.auth.token.email || null;
-  return { uid, name, email };
+export const testFunction = functions.region('asia-northeast1').https.onCall((data: any, context: any) => {
+  const { github_access_token, github_user_name } = data;
+  const { uid } = context.auth;
+  return { uid, github_access_token, github_user_name };
 });

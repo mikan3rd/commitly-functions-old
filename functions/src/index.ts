@@ -46,8 +46,6 @@ export const updateGitHubUser = functions.region('asia-northeast1').https.onCall
     .catch(err => {
       throw new functions.https.HttpsError('internal', 'Failed to set user', err);
     });
-
-  return { uid, github_access_token, github_user_name };
 });
 
 export const updateTwitterUser = functions.region('asia-northeast1').https.onCall((data: any, context: any) => {
@@ -69,8 +67,6 @@ export const updateTwitterUser = functions.region('asia-northeast1').https.onCal
     .catch(err => {
       throw new functions.https.HttpsError('internal', 'Failed to set user', err);
     });
-
-  return { uid, twitter_access_token, twitter_access_token_secret, twitter_screen_name };
 });
 
 export const deleteTwitterUser = functions.region('asia-northeast1').https.onCall((data, context: any) => {

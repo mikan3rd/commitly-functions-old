@@ -8,6 +8,25 @@ export const helloWorld = functions.region('asia-northeast1').https.onRequest((r
   response.send('Hello from Firebase!');
 });
 
+export const getUsers = functions.region('asia-northeast1').https.onRequest((request, response) => {
+  const userCollection = db.collection('users');
+  userCollection
+    .where('twitter_access_token', '>', '')
+    .get()
+    .then(snapshot => {
+      const users = [] as any[];
+
+      snapshot.forEach(doc => {
+        users.push(doc.data());
+      });
+
+      response.json({ users });
+    })
+    .catch(err => {
+      console.log('Error getting documents', err);
+    });
+});
+
 export const updateGitHubUser = functions.region('asia-northeast1').https.onCall((data: any, context: any) => {
   const { github_access_token, github_user_name } = data;
   const { uid } = context.auth;

@@ -28,6 +28,22 @@ export const getUsers = functions.region('asia-northeast1').https.onRequest((req
     });
 });
 
+export const getLoginUser = functions.region('asia-northeast1').https.onCall((data, context: any) => {
+  const { uid } = context.auth;
+  const userCollection = db.collection('users');
+  return userCollection
+    .doc(uid)
+    .get()
+    .then(doc => {
+      const result: any = doc.data();
+      const { github_access_token, twitter_access_token, twitter_access_token_secret, ...others } = result;
+      return { ...others };
+    })
+    .catch(err => {
+      console.log('Error getting documents', err);
+    });
+});
+
 export const updateGitHubUser = functions.region('asia-northeast1').https.onCall((data: any, context: any) => {
   const { github_access_token, github_user_name } = data;
   const { uid } = context.auth;

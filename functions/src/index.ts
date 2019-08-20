@@ -3,6 +3,7 @@ import * as admin from 'firebase-admin';
 
 admin.initializeApp();
 const db = admin.firestore();
+const { FieldValue } = admin.firestore;
 
 export const helloWorld = functions.region('asia-northeast1').https.onRequest((request, response) => {
   response.send('Hello from Firebase!');
@@ -36,7 +37,7 @@ export const updateGitHubUser = functions.region('asia-northeast1').https.onCall
     uid,
     github_access_token,
     github_user_name,
-    update_at: admin.firestore.FieldValue.serverTimestamp(),
+    update_at: FieldValue.serverTimestamp(),
   };
 
   userCollection
@@ -59,7 +60,7 @@ export const updateTwitterUser = functions.region('asia-northeast1').https.onCal
     twitter_access_token,
     twitter_access_token_secret,
     twitter_screen_name,
-    update_at: admin.firestore.FieldValue.serverTimestamp(),
+    update_at: FieldValue.serverTimestamp(),
   };
 
   userCollection
@@ -70,4 +71,20 @@ export const updateTwitterUser = functions.region('asia-northeast1').https.onCal
     });
 
   return { uid, twitter_access_token, twitter_access_token_secret, twitter_screen_name };
+});
+
+export const deleteTwitterUser = functions.region('asia-northeast1').https.onCall((data, context: any) => {
+  const { uid } = context.auth;
+  const userCollection = db.collection('users');
+  userCollection
+    .doc(uid)
+    .update({
+      twitter_access_token: FieldValue.delete(),
+      twitter_access_token_secret: FieldValue.delete(),
+      twitter_screen_name: FieldValue.delete(),
+      update: FieldValue.serverTimestamp(),
+    })
+    .catch(err => {
+      throw new functions.https.HttpsError('internal', 'Failed to delete twitter', err);
+    });
 });

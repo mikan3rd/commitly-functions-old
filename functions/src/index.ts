@@ -1,6 +1,8 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
+export type JSObject = { [p: string]: any };
+
 admin.initializeApp();
 const db = admin.firestore();
 const { FieldValue } = admin.firestore;
@@ -45,16 +47,21 @@ export const getLoginUser = functions.region('asia-northeast1').https.onCall((da
 });
 
 export const updateGitHubUser = functions.region('asia-northeast1').https.onCall((data: any, context: any) => {
-  const { github_access_token, github_user_name } = data;
+  const { github_access_token, github_user_name, github_user_id, is_new_user } = data;
   const { uid } = context.auth;
 
   const userCollection = db.collection('users');
-  const userData = {
+  const userData: JSObject = {
     uid,
     github_access_token,
     github_user_name,
-    update_at: FieldValue.serverTimestamp(),
+    github_user_id,
+    updated_at: FieldValue.serverTimestamp(),
   };
+
+  if (is_new_user) {
+    userData['created_at'] = FieldValue.serverTimestamp();
+  }
 
   userCollection
     .doc(uid)

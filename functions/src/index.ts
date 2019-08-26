@@ -81,7 +81,7 @@ export const updateTwitterUser = functions.region('asia-northeast1').https.onCal
     twitter_access_token,
     twitter_access_token_secret,
     twitter_screen_name,
-    update_at: FieldValue.serverTimestamp(),
+    updated_at: FieldValue.serverTimestamp(),
   };
 
   userCollection
@@ -101,7 +101,7 @@ export const deleteTwitterUser = functions.region('asia-northeast1').https.onCal
       twitter_access_token: FieldValue.delete(),
       twitter_access_token_secret: FieldValue.delete(),
       twitter_screen_name: FieldValue.delete(),
-      update: FieldValue.serverTimestamp(),
+      updated_at: FieldValue.serverTimestamp(),
     })
     .catch(err => {
       throw new functions.https.HttpsError('internal', 'Failed to delete twitter', err);

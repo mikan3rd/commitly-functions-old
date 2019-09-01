@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import axios from 'axios';
 
 export type JSObject = { [p: string]: any };
 
@@ -106,4 +107,29 @@ export const deleteTwitterUser = functions.region('asia-northeast1').https.onCal
     .catch(err => {
       throw new functions.https.HttpsError('internal', 'Failed to delete twitter', err);
     });
+});
+
+export const getGithubRepositories = functions.region('asia-northeast1').https.onCall(async (data, context: any) => {
+  const { uid } = context.auth;
+  const userCollection = db.collection('users');
+
+  let github_access_token;
+  try {
+    const doc = await userCollection.doc(uid).get();
+    const result: any = doc.data();
+    github_access_token = result.github_access_token;
+  } catch (error) {
+    return error;
+  }
+
+  const url = `${process.env.COMMITLY_ENDPOINT}/github_installation`;
+  const params = { github_access_token };
+  try {
+    const res = await axios.get(url, { params });
+    console.log(res.data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
 });

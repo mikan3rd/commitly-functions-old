@@ -109,7 +109,7 @@ export const deleteTwitterUser = functions.region('asia-northeast1').https.onCal
     });
 });
 
-export const getGithubRepositories = functions.region('asia-northeast1').https.onCall(async (data, context: any) => {
+export const updateGithubRepositories = functions.region('asia-northeast1').https.onCall(async (data, context: any) => {
   const { uid } = context.auth;
   const userCollection = db.collection('users');
 
@@ -124,12 +124,23 @@ export const getGithubRepositories = functions.region('asia-northeast1').https.o
 
   const url = `${process.env.COMMITLY_ENDPOINT}/github_installation`;
   const params = { github_access_token };
+
+  let installed_repositories;
   try {
     const res = await axios.get(url, { params });
-    console.log(res.data);
-    return res.data;
+    installed_repositories = res.data.result;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return error;
   }
+
+  const userData = { installed_repositories, updated_at: FieldValue.serverTimestamp() };
+
+  userCollection
+    .doc(uid)
+    .set(userData, { merge: true })
+    .catch(err => {
+      console.error(err);
+      throw new functions.https.HttpsError('internal', 'Failed to set user', err);
+    });
 });

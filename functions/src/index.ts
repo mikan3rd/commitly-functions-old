@@ -8,10 +8,6 @@ admin.initializeApp();
 const db = admin.firestore();
 const { FieldValue } = admin.firestore;
 
-export const helloWorld = functions.region('asia-northeast1').https.onRequest((request, response) => {
-  response.send('Hello from Firebase!');
-});
-
 export const getUsers = functions.region('asia-northeast1').https.onRequest((request, response) => {
   const userCollection = db.collection('users');
   userCollection
@@ -143,4 +139,48 @@ export const updateGithubRepositories = functions.region('asia-northeast1').http
       console.error(err);
       throw new functions.https.HttpsError('internal', 'Failed to set user', err);
     });
+});
+
+export const getUserInfo = functions.region('asia-northeast1').https.onCall(async (data: any, context) => {
+  const { github_user_name } = data;
+
+  const userCollection = db.collection('users');
+
+  let githubAcccesToken;
+  let user;
+  try {
+    const snapshot = await userCollection
+      .where('github_user_name', '==', github_user_name)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return;
+    }
+
+    const result = snapshot.docs[0].data();
+    const { github_access_token, twitter_access_token, twitter_access_token_secret, ...others } = result;
+    githubAcccesToken = result.github_access_token;
+    user = others;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+
+  const url = `${process.env.COMMITLY_ENDPOINT}/github_recent_commit`;
+  const params = { github_access_token: githubAcccesToken };
+
+  let commit;
+  try {
+    const res = await axios.get(url, { params });
+    commit = res.data;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+
+  return {
+    user,
+    commit,
+  };
 });
